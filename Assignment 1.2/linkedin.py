@@ -13,8 +13,8 @@ for line in pswrdfile:
 counter = 0
 for line in dictfile:
 	#print(line)
-	#str = line.replace("\n","").upper()
-	str2 = line.replace("\n","")
+	str = line.replace("\n","").upper()
+	#str2 = line.replace("\n","")
 	#result = hashlib.sha1(str.encode())
 	result2 = hashlib.sha1(str.encode())
 	crackedhash = result2.hexdigest()
@@ -31,8 +31,8 @@ for line in dictfile:
 	if newhash in passwrds:
 		counter = counter +1
 		if counter <= 1000:
-			rsltfile.write(newhash + " " + str2 + "\n")
-			print(newhash, " " , str2, " ", counter)
+			rsltfile.write(newhash + " " + str + "\n")
+			print(newhash, " " , str, " ", counter)
 	
 		else:
 			rsltfile.close()
