@@ -12,7 +12,7 @@ class ABFile():
     mycontext['debug'] = False  
 
     #Use a global lock to ensure the attacker is not able to cause race      conditions by issuing multiple threads to modify visible state or issue concurrent requests
-    mycontext['lockcriticalsection'] = createlock() 
+    self.glock = createlock() 
 
     # local (per object) reference to the underlying file
     self.Afn = filename+'.a'
@@ -27,44 +27,44 @@ class ABFile():
         self.Afile = openfile(self.Afn, False)
       else:
         #create it if it doesn't exist and add 'SE' to the readat file.
-        self.Afile = openfile(self.Bfn, create)
-        mycontext['lockcriticalsection'].acquire(True)
+        self.Afile = openfile(self.Afn, create)
+        self.glock.acquire(True)
         self.Afile.writeat('SE',0)
-        mycontext['lockcriticalsection'].release()
+        self.glock.release()
 
     #if the argument passed to openfile is False create and open a B file and open A file
     else:
       #valid A file exists in the listed files hence no need to create it again
       self.Afile = openfile(self.Afn, False)
       #creating B file since it gets deleted every time close is called
-      self.Bfile = openfile(self.Afn, True)
+      self.Bfile = openfile(self.Bfn, True)
 
 
   def writeat(self,data,offset):
-    
+
     #if a thread enters critical section(in this case, writing to an invalid file) the mutex lock ensures no other thread enters the critical section
-    mycontext['lockcriticalsection'].acquire(True)
+    self.glock.acquire(True)
     # Write the requested data to the B file using the sandbox's writeat call
     self.Bfile.writeat(data,offset)
     #lock is released which means another thread can acquire the critical section
-    mycontext['lockcriticalsection'].release()
+    self.glock.release()
   
 
   def readat(self,bytes,offset):
     
-    mycontext['lockcriticalsection'].acquire(True)
+    self.glock.acquire(True)
     # Read from the A file using the sandbox's readat...
     validdata = self.Afile.readat(bytes,offset)
-    mycontext['lockcriticalsection'].release()
+    self.glock.release()
     return validdata
 
 
   def close(self):
     #critical section acquired for reading B file
-    mycontext['lockcriticalsection'].acquire(True)
+    self.glock.acquire(True)
     DatainB = self.Bfile.readat(None, 0)
     #critical section released
-    mycontext['lockcriticalsection'].release()
+    self.glock.release()
     #storing the length of string DatainB which holds the file contents of B
     blen = len(DatainB)
     #checking if the first and last characters of B file are S and E respectively
@@ -74,9 +74,9 @@ class ABFile():
       self.Afile.close()
       removefile(self.Afn)
       self.Afile = openfile(self.Afn, True)
-      mycontext['lockcriticalsection'].acquire(True)
+      self.glock.acquire(True)
       self.Afile.writeat(DatainB, 0)
-      mycontext['lockcriticalsection'].release()
+      self.glock.release()
     self.Afile.close()
     self.Bfile.close()
     #in both cases(when B is valid or invalid) we ultimately remove B file
