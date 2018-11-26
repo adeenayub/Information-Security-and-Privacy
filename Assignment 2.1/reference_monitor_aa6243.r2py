@@ -27,7 +27,7 @@ class ABFile():
         self.Afile = openfile(self.Afn, False)
       else:
         #create it if it doesn't exist and add 'SE' to the readat file.
-        self.Afile = openfile(self.Afn, create)
+        self.Afile = openfile(self.Bfn, create)
         mycontext['lockcriticalsection'].acquire(True)
         self.Afile.writeat('SE',0)
         mycontext['lockcriticalsection'].release()
