@@ -1,0 +1,12 @@
+if "testfile.txt.a" in listfiles():
+  removefile("testfile.txt.a")
+if "testfile.txt.b" in listfiles():
+  removefile("testfile.txt.b")
+myfile=ABopenfile("testfile.txt",True)  #Create an AB file
+
+try:
+  myfile.writeat("Stest12345E",c)
+
+except:
+  log("offset for write is not an integer")
+  myfile.close()
